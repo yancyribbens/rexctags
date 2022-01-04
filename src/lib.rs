@@ -1,11 +1,12 @@
-//use std::fs;
+use std::fs;
 use std::error::Error;
 
-//pub fn run(lib_tag_file: Tag, dep_tag_file: Tag) -> Result<(), Box<dyn Error>> {
-    //let tags_file = fs::read_to_string(lib_tags_filename).unwrap();
+pub fn run(lib_tag_filename: String, dep_tag_filename: String) -> Result<(), Box<dyn Error>> {
+    let raw_lib_tag_file = fs::read_to_string(lib_tag_filename).unwrap();
+    let lib_tag_file = TagFile::new(raw_lib_tag_file);
     //let tags: Vec<String> = tags_file.split("\n").map(|s| s.to_string()).collect();
-    //Ok(())
-//}
+    Ok(())
+}
 
 // {tagname}<Tab>{tagfile}<Tab>{tagaddress}[;"<Tab>{tagfield}..]
 pub struct Tag {
@@ -38,7 +39,8 @@ pub struct TagFile {
 }
 
 impl TagFile {
-    pub fn new(tags: Vec<Tag>) -> Result<TagFile, Box<dyn Error>> {
+    pub fn new(raw_file_tags: String) -> Result<TagFile, Box<dyn Error>> {
+        let tags = TagFile::parse(raw_file_tags).unwrap();
         let _version = 2;
         let _sorted = 1;
         Ok(TagFile { _version, _sorted, tags })
@@ -49,7 +51,6 @@ impl TagFile {
     }
 
     pub fn parse(raw_tag_file: String) -> Result<Vec<Tag>, Box<dyn Error>> {
-        //let tags_file = fs::read_to_string(&self.location)?;
         let mut tags: Vec<Tag> = Vec::new();
         let lines: Vec<String> = raw_tag_file.split("\n").map(|s| s.to_string()).collect();
         for line in lines {
@@ -87,10 +88,25 @@ mod tests {
         tag_file
     }
 
+    fn tag_file_beta() -> String {
+        let tag_file_format_header = r#"!_TAG_FILE_FORMAT	2   /optional comment/"#;
+        let tag_file_sorted_header = r#"!_TAG_FILE_SORTED	1			/0=unsorted, 1=sorted/"#;
+        let tag_line_alpha = r#"foo_t	sub.h	/^typedef foo_t$/;"	kind:t"#;
+        let tag_line_beta = r#"func3	sub.p	/^func3()$/;"	function:/func1/func2	file:"#;
+		let tag_line_gamma = r#"getflag	sub.c	/^getflag(arg)$/;"	kind:f	file:"#;
+        let tag_file = format!("{}\n{}\n{}\n{}\n{}",
+            tag_file_format_header,
+            tag_file_sorted_header,
+            tag_line_alpha,
+            tag_line_beta,
+			tag_line_gamma
+		);
+		tag_file
+    }
+
     #[test]
     fn test_tag_file_parse() {
         let raw_tag_file = tag_file_alpha();
-        println!("tagfile: {}", raw_tag_file);
         let tag_file = TagFile::parse(raw_tag_file).unwrap();
 
         let tagname_alpha: String = tag_file[0].tagname.clone();
@@ -114,5 +130,9 @@ mod tests {
 
     #[test]
     fn test_tag_file() {
+        let raw_tag_file = tag_file_alpha();
+        let tagfile = TagFile::new(raw_tag_file).unwrap();
+        assert_eq!("asdf", tagfile.tags[0].tagname);
+        assert_eq!("inc", tagfile.tags[1].tagname);
     }
 }
