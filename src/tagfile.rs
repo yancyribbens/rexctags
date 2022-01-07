@@ -1,4 +1,6 @@
 use std::error::Error;
+use std::fs::File;
+use std::io::prelude::*;
 
 pub struct TagFile {
     _version: u8, // !_TAG_FILE_FORMAT
@@ -15,14 +17,19 @@ impl TagFile {
     }
 
     pub fn is_file_header(line: &String) -> bool {
-        line.as_bytes()[0] == 33u8
+        if line.len() >= 2 {
+            let bytes = line.as_bytes();
+            bytes[0] == 33u8 && bytes[1] == 95u8
+        } else {
+            false
+        }
     }
 
     pub fn parse(raw_tag_file: String) -> Result<Vec<String>, Box<dyn Error>> {
         let mut tags: Vec<String> = Vec::new();
         let lines: Vec<String> = raw_tag_file.split("\n").map(|s| s.to_string()).collect();
         for line in lines {
-            if !TagFile::is_file_header(&line) {
+            if line.len() > 0 && !TagFile::is_file_header(&line) {
                 tags.push(line);
             }
         }
@@ -35,6 +42,22 @@ impl TagFile {
         self.entries.dedup();
         Ok(self) 
     }
+
+    pub fn write(self, filename: &str) -> Result<(), Box<dyn Error>> {
+        let mut file = File::create(filename)?;
+        file.write_all(br#"!_TAG_FILE_FORMAT   2   /extended format; --format=1 will not append ;" to lines/"#)?;
+        file.write_all(b"\n");
+        file.write_all(br#"!_TAG_FILE_SORTED   1   /0=unsorted, 1=sorted, 2=foldcase/"#);
+        file.write_all(b"\n");
+        for e in self.entries {
+            file.write_all(e.as_bytes());
+            file.write_all(b"\n");
+        }
+        file.sync_all()?;
+
+        Ok(())
+    }
+
 }
 
 #[cfg(test)]
@@ -46,7 +69,7 @@ mod tests {
         let tag_file_sorted_header = r#"!_TAG_FILE_SORTED	1			/0=unsorted, 1=sorted/"#;
         let tag_line_alpha = r#"asdf	sub.cc	/^asdf()$/;"	new_field:some\svalue	file:"#;
         let tag_line_beta = r#"foo_t	sub.h	/^typedef foo_t$/;"	kind:t"#;
-        let tag_file = format!("{}\n{}\n{}\n{}",
+        let tag_file = format!("{}\n{}\n{}\n{}\n",
             tag_file_format_header,
             tag_file_sorted_header,
             tag_line_alpha,
@@ -60,7 +83,7 @@ mod tests {
         let tag_file_sorted_header = r#"!_TAG_FILE_SORTED	1			/0=unsorted, 1=sorted/"#;
         let tag_line_alpha = r#"getflag	sub.c	/^getflag(arg)$/;"	kind:f	file:"#;
         let tag_line_beta = r#"foo_t	sub.h	/^typedef foo_t$/;"	kind:t"#;
-        let tag_file = format!("{}\n{}\n{}\n{}",
+        let tag_file = format!("{}\n{}\n{}\n{}\n",
             tag_file_format_header,
             tag_file_sorted_header,
             tag_line_alpha,
