@@ -1,28 +1,25 @@
 use std::fs;
 use std::error::Error;
-use serde_json::{Result, Value};
 
 pub mod tagfile;
+pub mod cargo_metadata;
 
 use crate::tagfile::TagFile;
-use std::process::Command;
 
-pub fn dep_paths() -> Result<()> {
-    let mut output = Command::new("cargo")
-        .arg("metadata")
-        .arg("--format-version=1")
-        .output()
-        .expect("Oops, failed to generate cargo metada");
+pub fn run() -> Result<(), Box<dyn Error>> {
+    //let deps_path = CargoMetadata.get_deps();
 
-    let result = String::from_utf8_lossy(&output.stdout);
-    let v: Value = serde_json::from_str(&result)?;
-
+    //let metadata = cargo_metadata()?;
+    //println!("{:#?}", metadata);
     Ok(())
 }
 
-pub fn run() -> Result<()> {
-    dep_paths();
-    Ok(())
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    //fn cargo_metadata() -> Vec<u8> {
+    //}
 }
 
 //pub fn run(tag_filename_alpha: String, tag_filename_beta: String) -> Result<(), Box<dyn Error>> {

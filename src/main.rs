@@ -14,8 +14,8 @@ fn main() {
 	//let lib_tags = rexctags::Tag::new(lib_tags_filename).unwrap();
 	//let deps_tags = rexctags::Tag::new(deps_tags_filename).unwrap();
 
-    //if let Err(e) = rexctags::run(lib_tags_filename, deps_tags_filename) {
-        //println!("oops: {}", e);
-        //process::exit(1);
-    //}
+    if let Err(e) = rexctags::run() {
+        println!("oops: {}", e);
+        process::exit(1);
+    }
 }
