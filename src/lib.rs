@@ -2,15 +2,16 @@ use std::fs;
 use std::error::Error;
 
 pub mod tagfile;
-pub mod cargo_metadata;
+pub mod packages;
 
+use crate::packages::Packages;
 use crate::tagfile::TagFile;
 
 pub fn run() -> Result<(), Box<dyn Error>> {
-    //let deps_path = CargoMetadata.get_deps();
+    let packages = Packages::get_packages();
 
-    //let metadata = cargo_metadata()?;
-    //println!("{:#?}", metadata);
+    println!("packages: {:?}", packages);
+
     Ok(())
 }
 

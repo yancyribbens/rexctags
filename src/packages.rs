@@ -5,25 +5,31 @@ use serde_json::json;
 use std::process::Command;
 use std::str;
 
-#[derive(Serialize, Deserialize)]
-struct Packages {
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Packages {
     packages: Vec<Package>
 }
 
-#[derive(Serialize, Deserialize)]
-struct Package {
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Package {
     manifest_path: String
 }
 
 impl Packages {
-    fn get_packages() -> Result<Packages> {
+    pub fn get_packages() -> Result<Packages> {
         let mut output = Command::new("cargo")
             .arg("metadata")
             .arg("--format-version=1")
-            .output().unwrap();
+            .output()
+            .expect("Failed to retrieve cargo metadata");
 
-        let metadata: String = str::from_utf8(&output.stdout).unwrap().to_string();
-        let p: Packages = serde_json::from_str(&metadata).unwrap();
+        let metadata: String = str::from_utf8(&output.stdout)
+            .expect("Unable to convert Cargo Metadata to a string")
+            .to_string();
+
+        let p: Packages = serde_json::from_str(&metadata)
+            .expect("Unable to create Package from json string");
+
         Ok(p)
     }
 }
