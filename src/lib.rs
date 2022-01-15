@@ -8,7 +8,8 @@ use crate::packages::Packages;
 use crate::tagfile::TagFile;
 
 pub fn run() -> Result<(), Box<dyn Error>> {
-    let packages = Packages::get_packages();
+    let packages : Packages = Packages::get_packages().unwrap();
+    //let 
 
     println!("packages: {:?}", packages);
 
