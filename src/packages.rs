@@ -17,40 +17,55 @@ pub struct Packages {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Package {
-    root: OsString
+    manifest_path: String
 }
 
 impl Package {
-    pub fn set_path(mut self, manifest_path: OsString) -> Result<()> {
-        let mut path = PathBuf::from(manifest_path);
+    pub fn get_root(&self, mut root: OsString) -> Result<OsString> {
+        let mut path = PathBuf::from(&self.manifest_path);
 
         if path.pop() {
-            self.root = path.into_os_string();
+            root = path.into_os_string();
+        } else {
+            // TODO this should safely return an error
+            // however in principle this should never happen
+            panic!("oops!");
         }
 
-        // else error
-
-        Ok(())
+        Ok(root)
     }
 
-    pub fn get_package_files(self) -> Result<Vec<String>> {
-        //println!("path: {}", self.manifest_path);
-        let mut result = Vec::new();
+    //pub fn set_path(mut self, manifest_path: OsString) -> Result<()> {
+        //let mut path = PathBuf::from(manifest_path);
 
-        for entry in WalkDir::new(self.root)
-                .follow_links(true)
-                .into_iter()
-                .filter_map(|e| e.ok()) {
+        //if path.pop() {
+            //self.root = path.into_os_string();
+        //} 
 
-            let file = entry.file_name().to_string_lossy();
+        //else {
+            //return Err("Invalid cargo path")
+        //}
+
+        //Ok(())
+    //}
+
+    //pub fn get_package_files(self) -> Result<Vec<String>> {
+        //let mut result = Vec::new();
+
+        //for entry in WalkDir::new(self.root)
+                //.follow_links(true)
+                //.into_iter()
+                //.filter_map(|e| e.ok()) {
+
+            //let file = entry.file_name().to_string_lossy();
             
-            if file.ends_with(".rs") {
-                result.push(file.to_string());
-            }
-        }
+            //if file.ends_with(".rs") {
+                //result.push(file.to_string());
+            //}
+        //}
 
-        Ok(result)
-    }
+        //Ok(result)
+    //}
 }
 
 impl Packages {
@@ -81,8 +96,7 @@ mod tests {
     use std::fs::File;
     use std::io::{self, Write};
 
-    #[test]
-    fn test_metadata() {
+    fn packages() -> Packages {
         let package_alpha = Package {
             manifest_path: String::from("/alpha/Cargo.toml"),
         };
@@ -97,11 +111,30 @@ mod tests {
             packages: packages,
         };
 
+        packages
+    }
+
+    #[test]
+    fn test_package_serde() {
+        let packages = packages();
+
         let j = serde_json::to_string(&packages).unwrap();
         let p: Packages = serde_json::from_str(&j).unwrap();
 
-        assert_eq!(p.packages[0].manifest_path, String::from("/alpha/Cargo.toml"));
-        assert_eq!(p.packages[1].manifest_path, String::from("/beta/Cargo.toml"));
+        //assert_eq!(p.packages[0].manifest_path, String::from("/alpha/Cargo.toml"));
+        //assert_eq!(p.packages[1].manifest_path, String::from("/beta/Cargo.toml"));
+    }
+
+    #[test]
+    fn test_package_get_root() {
+        let packages = packages().packages;
+        let alpha = &packages[0];
+        let beta = &packages[1];
+
+        let root = OsString::new();
+        let alpha_root = alpha.get_root(root).unwrap();
+
+        assert_eq!(OsString::from("/alpha"), alpha_root);
     }
 
     //#[test]
