@@ -21,7 +21,8 @@ pub struct Package {
 }
 
 impl Package {
-    pub fn get_root(&self, mut root: OsString) -> Result<OsString> {
+    pub fn get_root(&self) -> Result<OsString> {
+        let mut root = OsString::new();
         let mut path = PathBuf::from(&self.manifest_path);
 
         if path.pop() {
@@ -120,9 +121,6 @@ mod tests {
 
         let j = serde_json::to_string(&packages).unwrap();
         let p: Packages = serde_json::from_str(&j).unwrap();
-
-        //assert_eq!(p.packages[0].manifest_path, String::from("/alpha/Cargo.toml"));
-        //assert_eq!(p.packages[1].manifest_path, String::from("/beta/Cargo.toml"));
     }
 
     #[test]
@@ -131,10 +129,11 @@ mod tests {
         let alpha = &packages[0];
         let beta = &packages[1];
 
-        let root = OsString::new();
-        let alpha_root = alpha.get_root(root).unwrap();
+        let alpha_root = alpha.get_root().unwrap();
+        let beta_root = beta.get_root().unwrap();
 
         assert_eq!(OsString::from("/alpha"), alpha_root);
+        assert_eq!(OsString::from("/beta"), beta_root);
     }
 
     //#[test]
