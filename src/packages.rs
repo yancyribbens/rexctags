@@ -36,37 +36,24 @@ impl Package {
         Ok(root)
     }
 
-    //pub fn set_path(mut self, manifest_path: OsString) -> Result<()> {
-        //let mut path = PathBuf::from(manifest_path);
+    pub fn get_package_files(self) -> Result<Vec<String>> {
+        let mut result = Vec::new();
+        let root = self.get_root().unwrap();
 
-        //if path.pop() {
-            //self.root = path.into_os_string();
-        //} 
+        for entry in WalkDir::new(root)
+                .follow_links(true)
+                .into_iter()
+                .filter_map(|e| e.ok()) {
 
-        //else {
-            //return Err("Invalid cargo path")
-        //}
-
-        //Ok(())
-    //}
-
-    //pub fn get_package_files(self) -> Result<Vec<String>> {
-        //let mut result = Vec::new();
-
-        //for entry in WalkDir::new(self.root)
-                //.follow_links(true)
-                //.into_iter()
-                //.filter_map(|e| e.ok()) {
-
-            //let file = entry.file_name().to_string_lossy();
+            let file = entry.file_name().to_string_lossy();
             
-            //if file.ends_with(".rs") {
-                //result.push(file.to_string());
-            //}
-        //}
+            if file.ends_with(".rs") {
+                result.push(file.to_string());
+            }
+        }
 
-        //Ok(result)
-    //}
+        Ok(result)
+    }
 }
 
 impl Packages {
@@ -136,31 +123,31 @@ mod tests {
         assert_eq!(OsString::from("/beta"), beta_root);
     }
 
-    //#[test]
-    //fn test_get_files() {
-        //let dir = tempdir().unwrap();
-        //let file_path = dir.path().join("lorem_ipsum.rs");
-        //let manifest = dir.path().join("Cargo.toml");
+    #[test]
+    fn test_get_files() {
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("lorem_ipsum.rs");
+        let manifest = dir.path().join("Cargo.toml");
 
-        //let file = File::create(file_path).unwrap();
-        //let manifest_file = File::create(manifest).unwrap(); 
+        let file = File::create(file_path).unwrap();
+        let manifest_file = File::create(manifest).unwrap(); 
 
-        //println!("{:?}", dir.path());
+        println!("{:?}", dir.path());
 
-        //let manifest_path: String = dir
-            //.path()
-            //.join("Cargo.toml")
-            //.into_os_string()
-            //.into_string()
-            //.unwrap();
+        let manifest_path: String = dir
+            .path()
+            .join("Cargo.toml")
+            .into_os_string()
+            .into_string()
+            .unwrap();
 
-        //let package = Package {
-            //manifest_path: manifest_path,
-        //};
+        let package = Package {
+            manifest_path: manifest_path,
+        };
 
-        //let files = package.get_package_files().unwrap();
-        //assert_eq!(files.len(), 1);
+        let files = package.get_package_files().unwrap();
+        assert_eq!(files.len(), 1);
 
-        //assert_eq!(files[0], "lorem_ipsum.rs");
-    //}
+        assert_eq!(files[0], "lorem_ipsum.rs");
+    }
 }
