@@ -1,38 +1,23 @@
-use std::fs;
-use std::error::Error;
+use std::fs::File;
+use std::io::{Write, Error};
 
-pub mod tagfile;
 pub mod packages;
+pub mod package;
 
 use crate::packages::Packages;
-use crate::tagfile::TagFile;
 
-pub fn run() -> Result<(), Box<dyn Error>> {
-    let packages : Packages = Packages::get_packages().unwrap();
-    //let 
+pub fn run() -> Result<(), Error> {
+    let packages = Packages::new().packages;
 
-    println!("packages: {:?}", packages);
+    let mut r = String::new();
+
+    for p in packages {
+        r.push_str(&p.get_root().unwrap().into_string().unwrap());
+    }
+
+    let path = "files.txt";
+    let mut output = File::create(path)?;
+    let _r = write!(output, "{}", r);
 
     Ok(())
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    //fn cargo_metadata() -> Vec<u8> {
-    //}
-}
-
-//pub fn run(tag_filename_alpha: String, tag_filename_beta: String) -> Result<(), Box<dyn Error>> {
-    //let raw_alpha_file = fs::read_to_string(&tag_filename_alpha).unwrap();
-    //let alpha_tag_file = TagFile::new(raw_alpha_file).unwrap();
-
-    //let raw_beta_file = fs::read_to_string(tag_filename_beta).unwrap();
-    //let beta_tag_file = TagFile::new(raw_beta_file).unwrap();
-
-    //let alpha_tag_file = alpha_tag_file.merge(beta_tag_file).unwrap();
-    //alpha_tag_file.write("new_tagfile.vi");
-
-    //Ok(())
-//}
